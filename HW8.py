@@ -84,7 +84,19 @@ def find_rest_in_building(building_num, db):
     restaurant names. You need to find all the restaurant names which are in the specific building. The restaurants 
     should be sorted by their rating from highest to lowest.
     '''
-    pass
+    con = sqlite3.connect(db)
+    cur = con.cursor()
+
+    cur.execute('''SELECT name
+                   FROM restaurants 
+                   JOIN buildings ON building_id = buildings.id 
+                   WHERE building = ? 
+                   ORDER BY restaurants.rating DESC''', (building_num,))
+    rows = cur.fetchall()
+
+    rest_names = [row[0] for row in rows]
+
+    return rest_names
 
 #EXTRA CREDIT
 def get_highest_rating(db): #Do this through DB as well
@@ -98,12 +110,60 @@ def get_highest_rating(db): #Do this through DB as well
     The second bar chart displays the buildings along the y-axis and their ratings along the x-axis 
     in descending order (by rating).
     """
-    pass
+    con = sqlite3.connect(db)
+    cur = con.cursor()
+
+    cur.execute('''SELECT categories.category, ROUND(AVG(restaurants.rating), 1) 
+                   FROM restaurants 
+                   JOIN categories ON restaurants.category_id = categories.id 
+                   GROUP BY category
+                   ORDER BY AVG(restaurants.rating) DESC''')
+    category_rows = cur.fetchall()
+
+    category_names = [row[0] for row in category_rows]
+    category_avg_ratings = [row[1] for row in category_rows]
+
+    cur.execute('''SELECT buildings.building, ROUND(AVG(restaurants.rating), 1) 
+                   FROM restaurants 
+                   JOIN buildings ON restaurants.building_id = buildings.id 
+                   GROUP BY buildings.building
+                   ORDER BY AVG(restaurants.rating) DESC''')
+    building_rows = cur.fetchall()
+
+    building_numbers = [row[0] for row in building_rows]
+    building_avg_ratings = [row[1] for row in building_rows]
+
+    con.close()
+
+    highest_category = (category_names[0], category_avg_ratings[0])
+    highest_building = (building_numbers[0], building_avg_ratings[0])
+
+
+    plt.figure((8,8))
+    plt.subplot(2, 1, 1)
+    plt.barh(category_names, category_avg_ratings)
+    plt.xlabel('Ratings')
+    plt.ylabel('Categories')
+    plt.title('Average Restaurant Rating by Category')
+    plt.xlim(0, 5)
+
+    plt.subplot(2, 1, 2)
+    plt.barh(building_numbers, building_avg_ratings)
+    plt.xlabel('Rating')
+    plt.ylabel('Buildings')
+    plt.title('Average Restaurant Rating by Building')
+    plt.xlim(0, 5)
+
+    plt.show()
+
+    return [highest_category, highest_building] 
 
 #Try calling your functions here
 def main():
     load_rest_data('South_U_Restaurants.db')
     plot_rest_categories('South_U_Restaurants.db')
+    find_rest_in_building(1140, 'South_U_Restaurants.db')
+    get_highest_rating('South_U_Restaurants.db')
 
 
 class TestHW8(unittest.TestCase):
@@ -142,7 +202,7 @@ class TestHW8(unittest.TestCase):
         self.assertIsInstance(cat_data, dict)
         self.assertEqual(cat_data, self.cat_dict)
         self.assertEqual(len(cat_data), 14)
-'''
+
     def test_find_rest_in_building(self):
         restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
         self.assertIsInstance(restaurant_list, list)
@@ -152,7 +212,6 @@ class TestHW8(unittest.TestCase):
     def test_get_highest_rating(self):
         highest_rating = get_highest_rating('South_U_Restaurants.db')
         self.assertEqual(highest_rating, self.highest_rating)
-'''
 
 if __name__ == '__main__':
     main()
