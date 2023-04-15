@@ -53,8 +53,30 @@ def plot_rest_categories(db):
     con = sqlite3.connect(db)
     cur = con.cursor()
 
-    cur.execute('SELECT ')
+    cur.execute('''SELECT category, COUNT(*) 
+                   FROM restaurants 
+                   JOIN categories ON category_id = categories.id 
+                   GROUP BY category''')
     rows = cur.fetchall()
+
+    rest_categories = {}
+    for row in rows:
+        category = row[0]
+        count = row[1]
+        rest_categories[category] = count 
+
+    con.close()
+
+    categories = list(rest_categories.keys())
+    all_counts = list(rest_categories.values())
+
+    plt.barh(categories, all_counts)
+    plt.xlabel('Number of Restaurants') 
+    plt.ylabel('Restaurant Categories')
+    plt.title('Types of Restaurant on South University Ave')
+    plt.show()
+
+    return rest_categories
 
 def find_rest_in_building(building_num, db):
     '''
@@ -81,6 +103,8 @@ def get_highest_rating(db): #Do this through DB as well
 #Try calling your functions here
 def main():
     load_rest_data('South_U_Restaurants.db')
+    plot_rest_categories('South_U_Restaurants.db')
+
 
 class TestHW8(unittest.TestCase):
     def setUp(self):
@@ -112,13 +136,13 @@ class TestHW8(unittest.TestCase):
         self.assertIsInstance(rest_data, dict)
         self.assertEqual(rest_data['M-36 Coffee Roasters Cafe'], self.rest_dict)
         self.assertEqual(len(rest_data), 25)
-'''
+
     def test_plot_rest_categories(self):
         cat_data = plot_rest_categories('South_U_Restaurants.db')
         self.assertIsInstance(cat_data, dict)
         self.assertEqual(cat_data, self.cat_dict)
         self.assertEqual(len(cat_data), 14)
-
+'''
     def test_find_rest_in_building(self):
         restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
         self.assertIsInstance(restaurant_list, list)
