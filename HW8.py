@@ -28,6 +28,11 @@ def load_rest_data(db):
         building_id = row[2]
         rating = row[3]
 
+        cur.execute('SELECT category FROM categories WHERE id = ?', (category_id,))
+        category = cur.fetchone()[0]
+        cur.execute('SELECT building FROM buildings WHERE id = ?', (building_id,))
+        building = cur.fetchone()[0]
+
         info = {
             'category': category,
             'building': building,
@@ -45,7 +50,11 @@ def plot_rest_categories(db):
     restaurant categories and the values should be the number of restaurants in each category. The function should
     also create a bar chart with restaurant categories and the count of number of restaurants in each category.
     """
-    pass
+    con = sqlite3.connect(db)
+    cur = con.cursor()
+
+    cur.execute('SELECT ')
+    rows = cur.fetchall()
 
 def find_rest_in_building(building_num, db):
     '''
@@ -71,7 +80,7 @@ def get_highest_rating(db): #Do this through DB as well
 
 #Try calling your functions here
 def main():
-    pass
+    load_rest_data('South_U_Restaurants.db')
 
 class TestHW8(unittest.TestCase):
     def setUp(self):
